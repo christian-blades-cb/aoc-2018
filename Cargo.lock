@@ -24,8 +24,6 @@ dependencies = [
 name = "day2"
 version = "0.1.0"
 dependencies = [
- "nom 4.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tap 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
