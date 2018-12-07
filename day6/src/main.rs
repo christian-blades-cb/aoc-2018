@@ -169,4 +169,23 @@ mod test {
         assert_eq!(true, contains_infinite(&vec![(0, 20)], 20));
         assert_eq!(false, contains_infinite(&vec![(0, 0)], 20));
     }
+
+    #[inline]
+    fn real_input() -> Vec<Coord> {
+        let buf = include_str!("../../input-day6");
+        buf.lines().map(parse_line).collect()
+    }
+
+    #[test]
+    fn test_part1_real() {
+        let coords = real_input();
+        assert_eq!(4016, part1(&coords, 300));
+        assert_eq!(46306, part2(&coords, 10000));
+    }
+
+    #[test]
+    fn test_part2_real() {
+        let coords = real_input();
+        assert_eq!(46306, part2(&coords, 10000));
+    }
 }
