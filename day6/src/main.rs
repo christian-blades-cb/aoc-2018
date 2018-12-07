@@ -1,50 +1,28 @@
-#[macro_use]
-extern crate nom;
-extern crate chrono;
 extern crate itertools;
-extern crate rayon;
-extern crate regex;
-extern crate tap;
 
-use chrono::{DateTime, Duration, Utc};
-use nom::types::CompleteStr;
-use nom::{alpha, digit};
-use rayon::prelude::*;
-use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::prelude::*;
-use tap::TapOps;
 
 type Coord = (isize, isize);
 
 fn main() -> Result<(), std::io::Error> {
     let mut file = File::open("input-day6")?;
-    // let mut buf: Vec<u8> = Vec::new();
-    // file.read_to_end(&mut buf)?;
     let mut buf = String::new();
     file.read_to_string(&mut buf)?;
 
     let coords: Vec<Coord> = buf.lines().map(parse_line).collect();
-    let largest_area = part1(&coords, 2000);
 
-    println!("day6.1 {}", largest_area); // not 556399 too high
+    println!("day6.1 {}", part1(&coords, 300));
+    println!("day6.2 {}", part2(&coords, 10000));
 
     Ok(())
 }
 
-#[inline]
-fn one_dim_to_two_dim(n: isize, width: isize) -> Coord {
-    let width = width.abs();
-    let y = n / width;
-    let x = n % width;
-    (x, y)
-}
-
 fn part1(points: &[Coord], box_size: isize) -> usize {
-    use itertools::{max, min, Itertools};
+    use itertools::Itertools;
     use std::sync::{Mutex, MutexGuard};
-    use std::{isize, usize};
+    use std::usize;
 
     let grid = (0 - box_size..box_size + 1)
         .into_iter()
@@ -99,11 +77,45 @@ fn part1(points: &[Coord], box_size: isize) -> usize {
     max_area
 }
 
+fn part2(pts: &[Coord], threshold: usize) -> usize {
+    use itertools::Itertools;
+    use std::cmp::{max, min};
+    use std::{isize, usize};
+
+    let (min_x, min_y, max_x, max_y): (isize, isize, isize, isize) = pts.iter().fold(
+        (isize::MAX, isize::MAX, isize::MIN, isize::MIN),
+        |(min_x, min_y, max_x, max_y), (x, y)| {
+            let min_x = min(x, &min_x);
+            let min_y = min(y, &min_y);
+            let max_x = max(x, &max_x);
+            let max_y = max(y, &max_y);
+            (*min_x, *min_y, *max_x, *max_y)
+        },
+    );
+    let bounding_mod = (threshold / pts.len() + 1) as isize;
+    let min_x = min_x - bounding_mod;
+    let min_y = min_y - bounding_mod;
+    let max_x = max_x + bounding_mod;
+    let max_y = max_y + bounding_mod;
+    let field = (min_x..=max_x)
+        .into_iter()
+        .cartesian_product((min_y..=max_y).into_iter())
+        .map(|coord| {
+            let distsum: usize = pts.iter().map(|p| manhattan_distance(p, &coord)).sum();
+            (coord, distsum)
+        });
+    let less_than_thresh: usize = field
+        .map(|(_, distsum)| if distsum < threshold { 1 } else { 0 })
+        .sum();
+    less_than_thresh
+}
+
 fn contains_infinite(pts: &[Coord], box_size: isize) -> bool {
     pts.iter()
         .any(|(x, y)| x.abs() == box_size || y.abs() == box_size)
 }
 
+#[inline]
 fn manhattan_distance(lhs: &Coord, rhs: &Coord) -> usize {
     use std::isize;
     let (l_x, l_y) = lhs;
@@ -134,8 +146,19 @@ mod test {
 5, 5
 8, 9";
         let coords: Vec<Coord> = buf.lines().map(parse_line).collect();
-        println!("coords: {:?}", coords);
         assert_eq!(17, part1(&coords, 30));
+    }
+
+    #[test]
+    fn test_part2() {
+        let buf = "1, 1
+1, 6
+8, 3
+3, 4
+5, 5
+8, 9";
+        let coords: Vec<Coord> = buf.lines().map(parse_line).collect();
+        assert_eq!(16, part2(&coords, 32));
     }
 
     #[test]

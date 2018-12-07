@@ -5,9 +5,4 @@ authors = ["Christian Blades <cblades@pindrop.com>"]
 edition = "2018"
 
 [dependencies]
-chrono = "0.4"
-nom = "4.1"
-tap = "0.3"
-regex = "1.1"
-rayon = "1.0"
 itertools = "0.7"
