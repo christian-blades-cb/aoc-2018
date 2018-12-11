@@ -53,8 +53,10 @@ fn part1(grid: &Vec<Vec<isize>>) -> (usize, usize) {
 }
 
 fn part2(grid: &Vec<Vec<isize>>) -> (usize, usize, usize) {
-    let max_square = (1..300)
-        .into_iter()
+    use rayon::prelude::*;
+
+    let max_square = (1..300_usize)
+        .into_par_iter()
         .map(|square_size| {
             let lp = largest_power(grid, square_size);
             println!("square_size: {} largest {:?}", square_size, lp);
@@ -116,4 +118,25 @@ mod test {
         let grid = create_grid(18);
         assert_eq!((33, 45), part1(&grid));
     }
+
+    #[test]
+    fn test_part1_real() {
+        let grid = create_grid(9424);
+        assert_eq!((243, 72), part1(&grid));
+    }
+
+    // #[test]
+    // fn test_part2() {
+    //     let grid = create_grid(18);
+    //     assert_eq!((90, 269, 16), part2(&grid));
+
+    //     let grid = create_grid(42);
+    //     assert_eq!((232, 251, 12), part2(&grid));
+    // }
+
+    // #[test]
+    // fn test_part2_real() {
+    //     let grid = create_grid(9424);
+    //     assert_eq!((229, 192, 11), part2(&grid));
+    // }
 }
