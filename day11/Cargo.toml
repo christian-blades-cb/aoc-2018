@@ -1,0 +1,14 @@
+[package]
+name = "day11"
+version = "0.1.0"
+authors = ["Christian Blades <cblades@pindrop.com>"]
+edition = "2018"
+
+[dependencies]
+nom = "4.1"
+regex = "1.1"
+chrono = "0.4"
+tap = "0.3"
+itertools = "0.7"
+topological-sort = "0.1"
+image = "0.20"
