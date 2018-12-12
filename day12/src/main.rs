@@ -1,28 +1,17 @@
 #[macro_use]
 extern crate nom;
 
-use chrono::{Duration, Utc};
-use itertools::Itertools;
 use nom::types::CompleteStr;
-use nom::{alpha, digit};
-use rayon::prelude::*;
-use regex::Regex;
 use std::collections::*;
 use std::io::prelude::*;
-use tap::TapOps;
 
 fn main() -> Result<(), std::io::Error> {
     use std::fs::File;
     let mut file = File::open("input-day12")?;
-    // let mut buf = Vec::new();
-    // file.read_to_end(&mut buf)?;
     let mut buf = String::new();
     file.read_to_string(&mut buf)?;
 
     let (initial_state, patterns) = parse_input(&buf);
-
-    // println!("initial state: {:?}", initial_state);
-    // println!("patterns: {:#?}", patterns);
 
     println!("day12.1 {}", part1(&initial_state, &patterns));
     println!("day12.2 {}", part2(&initial_state, &patterns));
@@ -33,31 +22,69 @@ fn main() -> Result<(), std::io::Error> {
 type Patterns = HashMap<[bool; 5], bool>;
 
 fn part1(initial_state: &[bool], patterns: &Patterns) -> isize {
-    let mut state: Vec<bool> = vec![false; 50];
+    const padding: usize = 50;
+    let mut state: Vec<bool> = vec![false; padding];
     state.append(&mut initial_state.to_vec());
-    state.append(&mut vec![false; 50]); // pad with 50 empties on either end
+    state.append(&mut vec![false; padding]);
 
     let final_state = (0..20).fold(state, |acc, _| generation(&acc, patterns));
 
     final_state
         .iter()
         .enumerate()
-        .map(|(i, x)| if *x { i as isize - 50 } else { 0 })
+        .map(|(i, x)| if *x { i as isize - padding as isize } else { 0 })
         .sum()
 }
 
 fn part2(initial_state: &[bool], patterns: &Patterns) -> isize {
-    let mut state: Vec<bool> = vec![false; 50];
+    const padding: usize = 1000;
+    const n_generations: usize = 50_000_000_000;
+    let mut state: Vec<bool> = vec![false; padding];
     state.append(&mut initial_state.to_vec());
-    state.append(&mut vec![false; 50]); // pad with 50 empties on either end
+    state.append(&mut vec![false; padding]);
 
-    let final_state = (0..50000000000_usize).fold(state, |acc, _| generation(&acc, patterns));
+    let generations = (0..n_generations).scan(state, |acc, _| {
+        let next_gen = generation(&acc, patterns);
+        *acc = next_gen.clone();
 
-    final_state
-        .iter()
-        .enumerate()
-        .map(|(i, x)| if *x { i as isize - 50 } else { 0 })
-        .sum()
+        Some(next_gen)
+    });
+
+    let mut seen = HashMap::new();
+
+    let mut plant_sum = 0;
+
+    for (n, gen) in generations.enumerate() {
+        let gen_sum: isize = gen
+            .iter()
+            .enumerate()
+            .map(|(i, x)| if *x { i as isize - padding as isize } else { 0 })
+            .sum();
+        // println!("[{}] -> {}", n, gen_sum);
+        plant_sum = gen_sum;
+        let lbounds = gen.iter().position(|x| *x == true).unwrap();
+        let rbounds = gen.iter().rposition(|x| *x == true).unwrap();
+        let pattern = gen[lbounds..=rbounds].to_vec();
+        let current_pos = lbounds as isize - padding as isize;
+        if let Some((first_pos, _first_gen)) = seen.insert(pattern.clone(), (current_pos, n)) {
+            // println!(
+            //     "convergence! position: {}, generation: {}",
+            //     first_pos, _first_gen
+            // );
+
+            let pos_diff = current_pos - first_pos;
+            let remaining_generations = n_generations - n - 1;
+            let final_pos = (pos_diff * remaining_generations as isize) + current_pos;
+
+            return pattern
+                .iter()
+                .enumerate()
+                .map(|(i, x)| if *x { i as isize + final_pos } else { 0 })
+                .sum();
+        }
+    }
+
+    plant_sum
 }
 
 fn generation(initial_state: &[bool], patterns: &Patterns) -> Vec<bool> {
@@ -124,7 +151,16 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_part1() {
-        assert!(true);
+    fn test_part1_real() {
+        let buf = include_str!("../../input-day12");
+        let (initial_state, patterns) = parse_input(&buf);
+        assert_eq!(4386, part1(&initial_state, &patterns));
+    }
+
+    #[test]
+    fn test_part2_real() {
+        let buf = include_str!("../../input-day12");
+        let (initial_state, patterns) = parse_input(&buf);
+        assert_eq!(5450000001166, part2(&initial_state, &patterns));
     }
 }
