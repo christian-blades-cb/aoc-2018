@@ -1,6 +1,8 @@
 use std::io::prelude::*;
 use tap::TapOps;
 
+const ASCII_ZERO: u8 = 48;
+
 fn main() -> Result<(), std::io::Error> {
     use std::fs::File;
 
@@ -20,20 +22,25 @@ fn main() -> Result<(), std::io::Error> {
 struct Elf(usize);
 
 fn part1(input: usize) -> String {
-    let mut recipes = vec![3_usize, 7];
+    let mut recipes = Vec::with_capacity(input + 12);
+    recipes.push(3_usize);
+    recipes.push(7_usize);
+
     let mut elf1 = Elf(0);
     let mut elf2 = Elf(1);
+
+    let mut digits_accum = Vec::new();
 
     while recipes.len() < input + 10 {
         let a = recipes[elf1.0];
         let b = recipes[elf2.0];
-        let mut new_recipes: Vec<usize> = {
-            let x = a + b;
-            let x = format!("{}", x);
-            x.bytes().map(|b| (b - 48) as usize).collect()
-        };
 
-        recipes.append(&mut new_recipes);
+        {
+            let x = a + b;
+            digits_accum.clear();
+            to_digits(x, &mut digits_accum);
+            recipes.append(&mut digits_accum);
+        }
 
         elf1.0 = (elf1.0 + 1 + a) % recipes.len();
         elf2.0 = (elf2.0 + 1 + b) % recipes.len();
@@ -43,8 +50,8 @@ fn part1(input: usize) -> String {
         .iter()
         .skip(input)
         .take(10)
-        .fold(String::new(), |acc, x| {
-            acc.tap(|a| a.push(((x + 48) as u8).into()))
+        .fold(String::with_capacity(input + 12), |acc, x| {
+            acc.tap(|a| a.push((*x as u8 + ASCII_ZERO).into()))
         })
 }
 
@@ -81,7 +88,7 @@ fn part2(input: usize) -> usize {
 
         haystack.clear();
         for d in recipes[offset..].iter() {
-            let c = (d + 48) as u8;
+            let c = *d as u8 + ASCII_ZERO;
             haystack.push(c.into());
         }
 
