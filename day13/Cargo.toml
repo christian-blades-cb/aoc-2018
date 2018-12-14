@@ -1,0 +1,10 @@
+[package]
+name = "day13"
+version = "0.1.0"
+authors = ["Christian Blades <cblades@pindrop.com>"]
+edition = "2018"
+
+[dependencies]
+nom = "4.1"
+ndarray = "0.12"
+tap = "0.3"
