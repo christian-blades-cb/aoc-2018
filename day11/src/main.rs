@@ -1,13 +1,4 @@
-#[macro_use]
-extern crate nom;
-
-use chrono::{Duration, Utc};
-//use itertools::Itertools;
-use nom::{alpha, digit};
-use regex::Regex;
-use std::collections::*;
 use std::io::prelude::*;
-use tap::TapOps;
 
 fn main() -> Result<(), std::io::Error> {
     use std::fs::File;
