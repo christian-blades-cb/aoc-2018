@@ -13,3 +13,5 @@ tap = "0.3"
 itertools = "0.7"
 topological-sort = "0.1"
 image = "0.20"
+pathfinding = "1.1"
+
